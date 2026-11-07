@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mine Fleet GIS — Open Pit Operations Dashboard</title>
+  <meta name="description" content="Real-time GIS fleet management dashboard for open pit mine operations. MapLibre + PostGIS." />
+
+  <!-- MapLibre GL JS -->
+  <link  rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.css" />
+  <script src="https://unpkg.com/maplibre-gl@4.5.0/dist/maplibre-gl.js"></script>
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       TOP BAR
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="topbar">
+
+    <!-- Logo -->
+    <button class="home-btn" onclick="location.href='home.html'"><i data-icon="arrow_back"></i> Home</button>
+    <div class="module-title">Fleet <span>Management</span></div>
+
+    <div class="top-divider"></div>
+
+    <!-- Live stats strip -->
+    <div class="top-stats">
+      <div class="top-stat">
+        <div class="dot" style="background:#10b981"></div>
+        <div>
+          <div class="label">Moving</div>
+          <div class="val" id="stat-moving">—</div>
+        </div>
+      </div>
+      <div class="top-stat">
+        <div class="dot" style="background:#f59e0b"></div>
+        <div>
+          <div class="label">Stopped</div>
+          <div class="val" id="stat-stopped">—</div>
+        </div>
+      </div>
+      <div class="top-stat">
+        <div class="dot" style="background:#3b82f6"></div>
+        <div>
+          <div class="label">Fleet</div>
+          <div class="val" id="stat-total">—</div>
+        </div>
+      </div>
+      <div class="top-stat">
+        <div class="dot" style="background:#a78bfa"></div>
+        <div>
+          <div class="label">Avg Speed</div>
+          <div class="val" id="stat-avgspd">—</div>
+        </div>
+      </div>
+      <div class="top-stat clickable" title="Open alerts" onclick="switchTab('alerts')">
+        <div class="dot" style="background:#ff6b78"></div>
+        <div>
+          <div class="label">Alerts</div>
+          <div class="val" id="stat-alerts">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right actions -->
+    <div class="top-actions">
+      <div id="liveTime">00:00:00</div>
+      <div class="icon-btn" title="Log out" onclick="AUTH.logout()"><i data-icon="logout"></i></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       MAP
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="map"></div>
+
+  <!-- Map toolbar (left side) -->
+  <div id="mapToolbar">
+    <button class="map-tool-btn" id="btnZoomMine" title="Zoom to mine extent"><i data-icon="target"></i></button>
+    <button class="map-tool-btn" id="btn3D"       title="Toggle 3D pitch"><i data-icon="mountain"></i></button>
+    <button class="map-tool-btn" id="btnNorth"    title="Reset north"><i data-icon="compass"></i></button>
+  </div>
+
+  <!-- Coordinate readout -->
+  <div id="coordReadout">0.000000, 0.000000</div>
+
+  <!-- Toast zone -->
+  <div id="toastZone"></div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       SIDE PANEL
+  ═══════════════════════════════════════════════════════════════════════ -->
+  <div id="panel">
+
+    <!-- Toggle handle -->
+    <div id="panelToggle" onclick="togglePanel()"><i data-icon="chevron-right"></i></div>
+
+    <!-- Tabs -->
+    <div class="panel-tabs">
+      <div class="panel-tab active" data-tab="vehicles" onclick="switchTab('vehicles')"><i data-icon="truck"></i> Fleet</div>
+      <div class="panel-tab"        data-tab="alerts"   onclick="switchTab('alerts')"><i data-icon="bell"></i> Alerts <span class="badge" id="alertBadge" style="display:none">0</span></div>
+      <div class="panel-tab"        data-tab="shifts"   onclick="switchTab('shifts')"><i data-icon="route"></i> Shifts</div>
+      <div class="panel-tab"        data-tab="layers"   onclick="switchTab('layers')"><i data-icon="layers"></i> Layers</div>
+    </div>
+
+    <!-- Panel content -->
+    <div class="panel-content">
+
+      <!-- ── Vehicles tab ── -->
+      <div class="tab-pane active" id="tab-vehicles">
+        <!-- Search -->
+        <div class="panel-search">
+          <span class="search-icon"><i data-icon="search"></i></span>
+          <input id="vehicleSearch" type="text" placeholder="Search vehicle or type…" autocomplete="off" />
+        </div>
+        <!-- Track time window -->
+        <div class="time-selector">
+          <div class="time-btn" data-hours="1">1h</div>
+          <div class="time-btn active" data-hours="6">6h</div>
+          <div class="time-btn" data-hours="12">12h</div>
+          <div class="time-btn" data-hours="24">24h</div>
+        </div>
+        <!-- Vehicle list -->
+        <div id="vehicleList">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <!-- ── Alerts tab ── -->
+      <div class="tab-pane" id="tab-alerts">
+        <div id="alertList">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <!-- ── Shifts tab (live trips, cycle time, route efficiency, losses, hotspots) ── -->
+      <div class="tab-pane" id="tab-shifts">
+        <div class="time-selector" id="kpiTime">
+          <div class="time-btn active" data-hours="12">12h</div>
+          <div class="time-btn" data-hours="24">24h</div>
+          <div class="time-btn" data-hours="72">3 days</div>
+        </div>
+        <div id="kpiBody"><div class="spinner"></div></div>
+      </div>
+
+      <!-- ── Layers tab ── -->
+      <div class="tab-pane" id="tab-layers">
+        <div id="layerToggles"></div>
+      </div>
+
+    </div><!-- /panel-content -->
+  </div><!-- /panel -->
+
+</div><!-- /app -->
+
+<!-- Scripts (order matters) -->
+<script src="js/auth.js"></script>
+<script>AUTH.guard();</script>
+<script src="js/icons.js"></script>
+<script src="js/config.js"></script>
+<script src="js/panels.js"></script>
+<script src="js/fleet-kpis.js"></script>
+<script src="js/map.js"></script>
+<script src="js/truck-markers.js"></script>
+<script src="js/replay-data.js"></script>
+<script src="js/replay.js"></script>
+<script src="js/kpi.js"></script>
+<script src="js/basemap.js"></script>
+<script>
+  // Boot sequence
+  document.addEventListener('DOMContentLoaded', () => {
+    hydrateIcons();  // icons.js — SVG icons
+    initMap();      // map.js — MapLibre init + all layers
+    map.on('load', initBasemap);  // basemap.js — satellite / streets / terrain / dark
+    map.on('load', initReplay);   // replay.js — moving-truck replay (needs replay-data.js)
+    initPanels();   // panels.js — tabs, stats, alerts, toggles
+    initFleetKpis(); // fleet-kpis.js — Shifts tab + hotspot layer
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in — GeoMines AI</title>
+<link rel="stylesheet" href="css/app.css"></head>
+<body>
+<div class="login">
+  <div class="card">
+    <div class="brand"><span class="logo" data-icon="landscape"></span>GeoMines <em>AI</em></div>
+    <h2>Sign in</h2><p class="sub">Use your account to open the dashboard.</p>
+    <label for="u">Username</label><input id="u" autocomplete="username" autofocus>
+    <label for="p">Password</label><input id="p" type="password" autocomplete="current-password">
+    <div class="err" id="err"></div>
+    <button class="btn" id="go">Sign in</button>
+    <p class="hint">The account is set in the backend <code>.env</code> file (APP_USER and APP_PASSWORD).</p>
+  </div>
+  <div class="foot">GIS DAY DEMO</div>
+</div>
+<script src="js/icons.js"></script><script src="js/auth.js"></script>
+<script>
+  hydrateIcons();
+  if (AUTH.token()) location.replace('home.html');
+  const go = document.getElementById('go'), err = document.getElementById('err');
+  async function submit() {
+    err.style.display = 'none'; go.disabled = true; go.textContent = 'Signing in…';
+    try { await AUTH.login(u.value.trim(), p.value); location.href = 'home.html'; }
+    catch (e) { err.textContent = e.message === 'Failed to fetch' ? 'Cannot reach the server. Is the backend running?' : e.message; err.style.display = 'block'; }
+    go.disabled = false; go.textContent = 'Sign in';
+  }
+  go.onclick = submit;
+  document.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+</script></body></html>

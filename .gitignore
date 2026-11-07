@@ -1,0 +1,10 @@
+# secrets and generated files: never commit these
+.env
+*.env
+!.env.example
+node_modules/
+__pycache__/
+*.pyc
+venv/
+.venv/
+.DS_Store

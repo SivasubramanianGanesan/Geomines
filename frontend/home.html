@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GeoMines AI</title>
+<link rel="stylesheet" href="css/app.css"></head>
+<body>
+<script src="js/icons.js"></script><script src="js/auth.js"></script>
+<script>AUTH.guard();</script>
+<header class="bar">
+  <div class="brand"><span class="logo" data-icon="landscape"></span>GeoMines <em>AI</em></div>
+  <div class="who"><span id="who"></span><button class="out" id="out"><i data-icon="logout"></i> Log out</button></div>
+</header>
+<div class="stage">
+  <h1>Welcome<span id="name"></span></h1>
+  <p class="lead">Choose a module to get started.</p>
+  <div class="grid" id="grid"></div>
+</div>
+<script>
+  // Rename or fill the modules here. "fleet" opens the fleet dashboard; the others open an empty page for now.
+  const MODULES = [
+    { icon: 'local_shipping', title: 'Fleet Management', text: 'Live truck tracking, idle and queue alerts, shift replay and shift summary.', href: 'fleet.html' },
+    { icon: 'view_in_ar',     title: 'Volume Analysis',  text: 'Stockpile volume from drone images and point clouds.', href: 'module.html?m=volume', soon: true },
+    { icon: 'widgets',        title: 'Tab 3',            text: 'Reserved for a future module.', href: 'module.html?m=tab3', soon: true },
+    { icon: 'extension',      title: 'Tab 4',            text: 'Reserved for a future module.', href: 'module.html?m=tab4', soon: true },
+  ];
+  document.getElementById('grid').innerHTML = MODULES.map(m => `
+    <a class="mod" href="${m.href}"><span class="badge">${ICON(m.icon)}</span><h3>${m.title}</h3><p>${m.text}</p>
+    ${m.soon ? '<span class="soon">Coming soon</span>' : '<span class="go">Open ' + ICON('arrow_forward') + '</span>'}</a>`).join('');
+  document.getElementById('who').textContent = AUTH.user() || '';
+  document.getElementById('name').textContent = AUTH.user() ? ', ' + AUTH.user() : '';
+  document.getElementById('out').onclick = () => AUTH.logout();
+  hydrateIcons();
+</script></body></html>

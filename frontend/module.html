@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GeoMines AI</title>
+<link rel="stylesheet" href="css/app.css"></head>
+<body>
+<script src="js/icons.js"></script><script src="js/auth.js"></script>
+<script>AUTH.guard();</script>
+<header class="bar">
+  <button class="back" onclick="location.href='home.html'"><i data-icon="arrow_back"></i> Home</button>
+  <h1 id="title"></h1>
+  <div class="who"><span id="who"></span><button class="out" id="out"><i data-icon="logout"></i> Log out</button></div>
+</header>
+<div class="empty"><div><span id="ico"></span><h3 id="h"></h3><p id="p"></p><span class="tag">Coming soon</span></div></div>
+<script>
+  const PAGES = {
+    volume: { icon: 'view_in_ar', title: 'Volume Analysis', text: 'Stockpile volume from drone images and point clouds will be added here.' },
+    tab3:   { icon: 'widgets',    title: 'Tab 3',           text: 'This page is empty for now.' },
+    tab4:   { icon: 'extension',  title: 'Tab 4',           text: 'This page is empty for now.' },
+  };
+  const m = PAGES[new URLSearchParams(location.search).get('m')] || PAGES.tab3;
+  document.getElementById('title').textContent = m.title; document.getElementById('h').textContent = m.title;
+  document.getElementById('p').textContent = m.text; document.getElementById('ico').innerHTML = ICON(m.icon);
+  document.getElementById('who').textContent = AUTH.user() || '';
+  document.getElementById('out').onclick = () => AUTH.logout();
+  hydrateIcons();
+</script></body></html>
